@@ -1,15 +1,18 @@
-#include "SDL3/SDL_pixels.h"
-#include "SDL3/SDL_render.h"
-#include "SDL3/SDL_video.h"
-#include "lib/constants.h"
-#include "lib/renderer.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
 #define SDL_MAIN_USE_CALLBACKS 1 /* use the callbacks instead of main() */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <stdio.h>
+
+#include "SDL3/SDL_pixels.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
+
+#include "lib/constants.h"
+#include "lib/renderer.h"
+#include "lib/vector_color.h"
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -18,7 +21,6 @@ static SDL_Texture *texture = NULL;
 static uint32_t *framebuffer = NULL;
 
 int position = 1;
-
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -29,8 +31,9 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  // Using textures as they are more memory efficient than simply writing data one pixel at a time
-  // Store the pixel data as a texture so it can be rewritten multiple times
+  // Using textures as they are more memory efficient than simply writing data
+  // one pixel at a time Store the pixel data as a texture so it can be
+  // rewritten multiple times
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                               SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH,
                               WINDOW_HEIGHT);
@@ -60,10 +63,14 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
   position += 1;
-  put_pixel(position, 0, 0xFF0000FF, framebuffer);  // blue, right
-  put_pixel(0, position, 0xFFFF0000, framebuffer);  // red, top
-  put_pixel(-position, 0, 0xFF00FF00, framebuffer); // green, left
-  put_pixel(0, -position, 0xFFFFFFFF, framebuffer); // white, bottom
+  put_pixel(position, 0, vector_color_to_argb8888(vector_color_cyan()),
+            framebuffer); // blue, right
+  put_pixel(0, position, vector_color_to_argb8888(vector_color_magenta()),
+            framebuffer); // red, top
+  put_pixel(-position, 0, vector_color_to_argb8888(vector_color_yellow()),
+            framebuffer); // green, left
+  put_pixel(0, -position, vector_color_to_argb8888(vector_color_white()),
+            framebuffer); // white, bottom
 
   SDL_UpdateTexture(texture, NULL, framebuffer,
                     WINDOW_WIDTH * sizeof(uint32_t));

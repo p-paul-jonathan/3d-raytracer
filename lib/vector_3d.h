@@ -1,7 +1,6 @@
 #ifndef VECTOR_3D_H
 #define VECTOR_3D_H
 
-#include <math.h>
 #include <stdbool.h>
 
 typedef struct {

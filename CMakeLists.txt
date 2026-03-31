@@ -14,4 +14,4 @@ add_subdirectory(lib)
 add_executable(3d-raytracer WIN32 main.c)
 
 # Link to the actual SDL3 library.
-target_link_libraries(3d-raytracer PRIVATE SDL3::SDL3 3d-raytracer-lib)
+target_link_libraries(3d-raytracer PRIVATE SDL3::SDL3 3d-raytracer-lib m)

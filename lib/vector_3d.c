@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "vector_3d.h"
 
 Vector3D vector_3d_init(float x, float y, float z) {
@@ -21,8 +23,8 @@ float vector_3d_dot_product(Vector3D a, Vector3D b) {
 }
 
 Vector3D vector_3d_cross_product(Vector3D a, Vector3D b) {
-  return vector_3d_init((a.y * b.z) - (b.z * a.y), (a.x * b.z) - (b.z * a.x),
-                        (a.x * b.y) - (b.y * a.x));
+  return vector_3d_init(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
+                        a.x * b.y - a.y * b.x);
 }
 
 Vector3D vector_3d_negate(Vector3D v) {
@@ -30,11 +32,15 @@ Vector3D vector_3d_negate(Vector3D v) {
 }
 
 float vector_3d_magnitude(Vector3D v) {
-  return sqrtf(vector_3d_dot_product(v, v));
+  return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
 Vector3D vector_3d_unit_vector(Vector3D v) {
-  return vector_3d_multiply_scalar(v, vector_3d_magnitude(v));
+  float mag = vector_3d_magnitude(v);
+  if (mag == 0.0f) {
+    return vector_3d_init(0, 0, 0);
+  }
+  return vector_3d_multiply_scalar(v, 1.0f / mag);
 }
 
 Vector3D vector_3d_reflect(Vector3D v, Vector3D normal) {
@@ -47,6 +53,6 @@ Vector3D vector_3d_reflect(Vector3D v, Vector3D normal) {
 }
 
 bool vector_3d_equal(Vector3D a, Vector3D b, float err) {
-  return (fabs(a.x - b.x) < err && fabs(a.y - b.y) < err &&
-          fabs(a.z - b.z) < err);
+  return (fabsf(a.x - b.x) < err && fabsf(a.y - b.y) < err &&
+          fabsf(a.z - b.z) < err);
 }

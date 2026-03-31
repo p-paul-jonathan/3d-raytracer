@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 add_library(3d-raytracer-lib
   renderer.c
   vector_3d.c
+  vector_color.c
   camera.c
 )
 
