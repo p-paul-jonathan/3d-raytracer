@@ -31,11 +31,14 @@ void put_pixel(int x, int y, uint32_t color, uint32_t *framebuffer) {
 
 // Computes the Light intensity on each point in camera
 // by weighted cosine sum of all lights falling on it
-float compute_lighting(Vector3D sphere_intersection_point,
-                       Vector3D sphere_normal_at_intersection_point,
-                       Scene scene, float sphere_speculararity,
-                       Vector3D view_direction) {
-  float intensity_of_light_at_intersection_point = 0.0f;
+VectorColor compute_lighting(Vector3D sphere_intersection_point,
+                             Vector3D sphere_normal_at_intersection_point,
+                             Scene scene, float sphere_speculararity,
+                             Vector3D view_direction) {
+
+  VectorColor intensity_of_light_at_intersection_point =
+      vector_color_init(0, 0, 0, 1);
+
   Vector3D light_direction_at_sphere;
 
   for (int i = 0; i < scene.lights_count; i++) {
@@ -43,17 +46,22 @@ float compute_lighting(Vector3D sphere_intersection_point,
     float multiplier_min = 0.001f, multiplier_max;
 
     if (light.type == AMBIENT) {
-      // we add intensity to every visible point on the sphere
-      intensity_of_light_at_intersection_point += light.intensity;
+      intensity_of_light_at_intersection_point =
+          vector_color_add(intensity_of_light_at_intersection_point,
+                           vector_color_scale(light.color, light.intensity));
     } else {
+
       if (light.type == POINT) {
-        light_direction_at_sphere = vector_3d_unit_vector(
-            vector_3d_subtract(light.position, sphere_intersection_point));
+        light_direction_at_sphere =
+            vector_3d_subtract(light.position, sphere_intersection_point);
         multiplier_max = 1.0f;
       } else {
-        light_direction_at_sphere = vector_3d_unit_vector(light.direction);
+        light_direction_at_sphere = light.direction;
         multiplier_max = INFINITY;
       }
+
+      light_direction_at_sphere =
+          vector_3d_unit_vector(light_direction_at_sphere);
 
       float n_dot_l = vector_3d_dot_product(sphere_normal_at_intersection_point,
                                             light_direction_at_sphere);
@@ -71,24 +79,30 @@ float compute_lighting(Vector3D sphere_intersection_point,
         continue;
 
       if (n_dot_l > 0) {
-        intensity_of_light_at_intersection_point +=
-            n_dot_l /
-            (vector_3d_magnitude(sphere_normal_at_intersection_point) *
-             vector_3d_magnitude(light_direction_at_sphere));
+        VectorColor diffuse_contribution =
+            vector_color_scale(light.color, light.intensity * n_dot_l);
+
+        intensity_of_light_at_intersection_point = vector_color_add(
+            intensity_of_light_at_intersection_point, diffuse_contribution);
       }
 
       if (sphere_speculararity > -1) {
         Vector3D reflected_ray =
             vector_3d_reflect(vector_3d_negate(light_direction_at_sphere),
                               sphere_normal_at_intersection_point);
+
         float r_dot_v =
             vector_3d_dot_product(vector_3d_unit_vector(reflected_ray),
                                   vector_3d_unit_vector(view_direction));
 
         if (r_dot_v > 0) {
-          intensity_of_light_at_intersection_point +=
-              light.intensity *
-              calculate_sphere_shine(sphere_speculararity, r_dot_v);
+          float spec = calculate_sphere_shine(sphere_speculararity, r_dot_v);
+
+          VectorColor specular_contribution =
+              vector_color_scale(light.color, light.intensity * spec);
+
+          intensity_of_light_at_intersection_point = vector_color_add(
+              intensity_of_light_at_intersection_point, specular_contribution);
         }
       }
     }
@@ -115,6 +129,9 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
   if (!intersection.hit_sphere)
     return vector_color_black();
 
+  if (intersection.closest_sphere.light_source)
+    return intersection.closest_sphere.color;
+
   Vector3D sphere_intersection_point = vector_3d_add(
       camera_position, vector_3d_multiply_scalar(
                            ray_from_camera, intersection.closest_multiplier));
@@ -122,12 +139,12 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
       vector_3d_unit_vector(vector_3d_subtract(
           sphere_intersection_point, intersection.closest_sphere.center));
 
-  float intensity = compute_lighting(
+  VectorColor intensity = compute_lighting(
       sphere_intersection_point, sphere_normal_at_intersection_point, scene,
       intersection.closest_sphere.specular, vector_3d_negate(ray_from_camera));
 
   VectorColor local_color =
-      vector_color_scale(intersection.closest_sphere.color, intensity);
+      vector_color_mul(intersection.closest_sphere.color, intensity);
   float reflectiveness = intersection.closest_sphere.reflectiveness;
 
   if (recurstion_depth <= 0 || reflectiveness <= 0)

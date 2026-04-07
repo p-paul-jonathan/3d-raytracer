@@ -13,3 +13,13 @@ Making a 3d Raytracer in C
 
 - build and run
 
+
+## Examples
+
+### Cornell Box
+
+![Cornell Box](./images/cornell_box.png)
+
+### Solar System
+
+![Solar System](./images/solar_system.png)

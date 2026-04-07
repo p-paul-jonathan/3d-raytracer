@@ -61,3 +61,7 @@ bool vector_3d_equal(Vector3D a, Vector3D b, float err) {
 void vector_3d_print(Vector3D v) {
   printf("Vector3D <%f, %f, %f>\n", v.x, v.y, v.z);
 }
+
+Vector3D vector_3d_zero() {
+  return vector_3d_init(0, 0, 0);
+}

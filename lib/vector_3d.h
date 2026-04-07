@@ -45,5 +45,6 @@ Vector3D vector_3d_reflect(Vector3D v, Vector3D normal);
 bool vector_3d_equal(Vector3D a, Vector3D b, float err);
 
 void vector_3d_print(Vector3D v);
+Vector3D vector_3d_zero();
 
 #endif // VECTOR_3D_H

@@ -3,6 +3,7 @@
 
 #include "vector_3d.h"
 #include "vector_color.h"
+#include <stdbool.h>
 
 typedef struct {
   Vector3D center;
@@ -10,6 +11,7 @@ typedef struct {
   VectorColor color;
   float specular;       // higher the value, the more shiny the sphere will be
   float reflectiveness; // 0 to 1
+  bool light_source;
 } Sphere;
 
 typedef struct {
