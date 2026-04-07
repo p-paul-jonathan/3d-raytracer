@@ -25,11 +25,9 @@ calculate_sphere_intersection_points(Vector3D ray_origin,
   return (SphereIntersectionPoints){t1, t2};
 }
 
-float calculate_sphere_shine(Vector3D reflected_ray, Vector3D view_direction,
-                             float sphere_speculararity, float r_dot_v) {
-  return powf(r_dot_v / (vector_3d_magnitude(reflected_ray) *
-                         vector_3d_magnitude(view_direction)),
-              sphere_speculararity);
+float calculate_sphere_shine(float sphere_speculararity, float r_dot_v) {
+  // assume R and V are normalized
+  return powf(r_dot_v, sphere_speculararity);
 }
 
 // calculate the closest sphere in the scene from the source

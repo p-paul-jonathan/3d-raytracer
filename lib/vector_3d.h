@@ -19,7 +19,6 @@ Vector3D vector_3d_negate(Vector3D v);
 float vector_3d_magnitude(Vector3D v);
 Vector3D vector_3d_unit_vector(Vector3D v);
 
-
 /*
  * This is the reflection of a ray with a normal w.r.t a mirror
  *
@@ -41,8 +40,10 @@ Vector3D vector_3d_unit_vector(Vector3D v);
  *
  *  r = x - 2*(<x, n>)*n
  *
-*/
+ */
 Vector3D vector_3d_reflect(Vector3D v, Vector3D normal);
 bool vector_3d_equal(Vector3D a, Vector3D b, float err);
+
+void vector_3d_print(Vector3D v);
 
 #endif // VECTOR_3D_H

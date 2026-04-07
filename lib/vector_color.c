@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 
 #include "vector_color.h"
 
@@ -50,3 +51,8 @@ VectorColor vector_color_magenta() { return vector_color_init(1, 0, 1, 1); }
 VectorColor vector_color_yellow() { return vector_color_init(1, 1, 0, 1); }
 VectorColor vector_color_black() { return vector_color_init(0, 0, 0, 1); }
 VectorColor vector_color_white() { return vector_color_init(1, 1, 1, 1); }
+
+void vector_color_print(VectorColor v) {
+  printf("VectorColor <%f, %f, %f, %f> <RGBA>\n", v.red, v.green, v.blue,
+         v.alpha);
+}

@@ -179,29 +179,29 @@ renderer.c.s:
 	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/renderer.c.s
 .PHONY : renderer.c.s
 
-scene.o: scene.c.o
-.PHONY : scene.o
+sphere.o: sphere.c.o
+.PHONY : sphere.o
 
 # target to build an object file
-scene.c.o:
-	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/scene.c.o
-.PHONY : scene.c.o
+sphere.c.o:
+	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/sphere.c.o
+.PHONY : sphere.c.o
 
-scene.i: scene.c.i
-.PHONY : scene.i
+sphere.i: sphere.c.i
+.PHONY : sphere.i
 
 # target to preprocess a source file
-scene.c.i:
-	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/scene.c.i
-.PHONY : scene.c.i
+sphere.c.i:
+	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/sphere.c.i
+.PHONY : sphere.c.i
 
-scene.s: scene.c.s
-.PHONY : scene.s
+sphere.s: sphere.c.s
+.PHONY : sphere.s
 
 # target to generate assembly for a file
-scene.c.s:
-	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/scene.c.s
-.PHONY : scene.c.s
+sphere.c.s:
+	cd /Users/paul/personal/3d-raytracer && $(MAKE) $(MAKESILENT) -f lib/CMakeFiles/3d-raytracer-lib.dir/build.make lib/CMakeFiles/3d-raytracer-lib.dir/sphere.c.s
+.PHONY : sphere.c.s
 
 vector_3d.o: vector_3d.c.o
 .PHONY : vector_3d.o
@@ -266,9 +266,9 @@ help:
 	@echo "... renderer.o"
 	@echo "... renderer.i"
 	@echo "... renderer.s"
-	@echo "... scene.o"
-	@echo "... scene.i"
-	@echo "... scene.s"
+	@echo "... sphere.o"
+	@echo "... sphere.i"
+	@echo "... sphere.s"
 	@echo "... vector_3d.o"
 	@echo "... vector_3d.i"
 	@echo "... vector_3d.s"

@@ -47,19 +47,24 @@ float compute_lighting(Vector3D sphere_intersection_point,
       intensity_of_light_at_intersection_point += light.intensity;
     } else {
       if (light.type == POINT) {
-        light_direction_at_sphere =
-            vector_3d_subtract(light.position, sphere_intersection_point);
+        light_direction_at_sphere = vector_3d_unit_vector(
+            vector_3d_subtract(light.position, sphere_intersection_point));
         multiplier_max = 1.0f;
       } else {
-        light_direction_at_sphere = light.direction;
+        light_direction_at_sphere = vector_3d_unit_vector(light.direction);
         multiplier_max = INFINITY;
       }
 
       float n_dot_l = vector_3d_dot_product(sphere_normal_at_intersection_point,
                                             light_direction_at_sphere);
 
+      Vector3D shadow_origin =
+          vector_3d_add(sphere_intersection_point,
+                        vector_3d_multiply_scalar(
+                            sphere_normal_at_intersection_point, 0.001f));
+
       SphereIntersection shadow_intersection = closest_intersection(
-          sphere_intersection_point, light_direction_at_sphere, multiplier_min,
+          shadow_origin, light_direction_at_sphere, multiplier_min,
           multiplier_max, scene.spheres, scene.spheres_count);
 
       if (shadow_intersection.hit_sphere)
@@ -73,15 +78,17 @@ float compute_lighting(Vector3D sphere_intersection_point,
       }
 
       if (sphere_speculararity > -1) {
-        Vector3D reflected_ray = vector_3d_multiply_scalar(
-            sphere_normal_at_intersection_point, 2 * n_dot_l);
-        float r_dot_v = vector_3d_dot_product(reflected_ray, view_direction);
+        Vector3D reflected_ray =
+            vector_3d_reflect(vector_3d_negate(light_direction_at_sphere),
+                              sphere_normal_at_intersection_point);
+        float r_dot_v =
+            vector_3d_dot_product(vector_3d_unit_vector(reflected_ray),
+                                  vector_3d_unit_vector(view_direction));
 
         if (r_dot_v > 0) {
           intensity_of_light_at_intersection_point +=
               light.intensity *
-              calculate_sphere_shine(reflected_ray, view_direction,
-                                     sphere_speculararity, r_dot_v);
+              calculate_sphere_shine(sphere_speculararity, r_dot_v);
         }
       }
     }
@@ -98,11 +105,12 @@ float compute_lighting(Vector3D sphere_intersection_point,
 // particulr object - ranges from 0 to infinity - can be defined as the range of
 // the camera
 VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
-                      float multiplier_min, float multiplier_max, Scene scene) {
+                      float multiplier_min, float multiplier_max, Scene scene,
+                      int recurstion_depth) {
 
   SphereIntersection intersection =
-      closest_intersection(camera_position, ray_from_camera, 0, INFINITY,
-                           scene.spheres, scene.spheres_count);
+      closest_intersection(camera_position, ray_from_camera, multiplier_min,
+                           multiplier_max, scene.spheres, scene.spheres_count);
 
   if (!intersection.hit_sphere)
     return vector_color_black();
@@ -118,7 +126,29 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
       sphere_intersection_point, sphere_normal_at_intersection_point, scene,
       intersection.closest_sphere.specular, vector_3d_negate(ray_from_camera));
 
-  return vector_color_scale(intersection.closest_sphere.color, intensity);
+  VectorColor local_color =
+      vector_color_scale(intersection.closest_sphere.color, intensity);
+  float reflectiveness = intersection.closest_sphere.reflectiveness;
+
+  if (recurstion_depth <= 0 || reflectiveness <= 0)
+    return local_color;
+
+  Vector3D reflected_ray = vector_3d_unit_vector(
+      vector_3d_reflect(ray_from_camera, sphere_normal_at_intersection_point));
+
+  Vector3D offset_origin = vector_3d_add(
+      sphere_intersection_point,
+      vector_3d_multiply_scalar(sphere_normal_at_intersection_point, 0.001f));
+
+  VectorColor reflected_color =
+      trace_ray(offset_origin, reflected_ray, 0.001, INFINITY, scene,
+                recurstion_depth - 1);
+
+  VectorColor weighted_color =
+      vector_color_add(vector_color_scale(local_color, 1 - reflectiveness),
+                       vector_color_scale(reflected_color, reflectiveness));
+
+  return weighted_color;
 }
 
 void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {
@@ -133,7 +163,7 @@ void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {
 
       VectorColor pixel_color =
           trace_ray(camera.position, ray_from_camera, camera.min_range,
-                    camera.max_range, scene);
+                    camera.max_range, scene, MAX_RECURSION_DEPTH);
 
       put_pixel(i, j, vector_color_to_argb8888(pixel_color), framebuffer);
     }

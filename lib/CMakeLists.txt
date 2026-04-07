@@ -5,7 +5,6 @@ add_library(3d-raytracer-lib
   vector_3d.c
   vector_color.c
   camera.c
-  scene.c
   sphere.c
 )
 

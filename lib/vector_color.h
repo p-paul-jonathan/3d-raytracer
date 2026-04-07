@@ -18,7 +18,6 @@ VectorColor vector_color_mul(VectorColor a, VectorColor b);
 bool vector_color_equal(VectorColor a, VectorColor b, float err);
 uint32_t vector_color_to_argb8888(VectorColor v);
 
-
 VectorColor vector_color_red();
 VectorColor vector_color_green();
 VectorColor vector_color_blue();
@@ -27,5 +26,7 @@ VectorColor vector_color_magenta();
 VectorColor vector_color_yellow();
 VectorColor vector_color_black();
 VectorColor vector_color_white();
+
+void vector_color_print(VectorColor v);
 
 #endif // VECTOR_COLOR_H

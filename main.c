@@ -38,11 +38,14 @@ static bool done = false;
 static void initialize_scene() {
   int spheres_count = 4;
   Sphere *spheres = malloc(spheres_count * sizeof(Sphere));
-  spheres[0] = (Sphere){vector_3d_init(0, -1, 3), 1, vector_color_red(), 500};
-  spheres[1] = (Sphere){vector_3d_init(2, 0, 4), 1, vector_color_blue(), 500};
-  spheres[2] = (Sphere){vector_3d_init(-2, 0, 4), 1, vector_color_green(), 10};
-  spheres[3] =
-      (Sphere){vector_3d_init(0, -5001, 0), 5000, vector_color_yellow(), 1000};
+  spheres[0] =
+      (Sphere){vector_3d_init(0, -1, 3), 1, vector_color_red(), 500, 0.2};
+  spheres[1] =
+      (Sphere){vector_3d_init(2, 0, 4), 1, vector_color_blue(), 500, 0.3};
+  spheres[2] =
+      (Sphere){vector_3d_init(-2, 0, 4), 1, vector_color_green(), 10, 0.4};
+  spheres[3] = (Sphere){vector_3d_init(0, -5001, 0), 5000,
+                        vector_color_yellow(), 1000, 0.5};
 
   int lights_count = 3;
   Light *lights = malloc(lights_count * sizeof(Light));

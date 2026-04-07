@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 
 #include "vector_3d.h"
 
@@ -55,4 +56,8 @@ Vector3D vector_3d_reflect(Vector3D v, Vector3D normal) {
 bool vector_3d_equal(Vector3D a, Vector3D b, float err) {
   return (fabsf(a.x - b.x) < err && fabsf(a.y - b.y) < err &&
           fabsf(a.z - b.z) < err);
+}
+
+void vector_3d_print(Vector3D v) {
+  printf("Vector3D <%f, %f, %f>\n", v.x, v.y, v.z);
 }
