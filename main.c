@@ -1,5 +1,6 @@
 #include "SDL3/SDL_log.h"
 #include "camera.h"
+#include "light.h"
 #include "scene.h"
 #include "sphere.h"
 #include "vector_3d.h"
@@ -43,9 +44,20 @@ static void initialize_scene() {
   spheres[3] =
       (Sphere){vector_3d_init(0, -5001, 0), 5000, vector_color_yellow()};
 
+  int lights_count = 3;
+  Light *lights = malloc(lights_count * sizeof(Light));
+  lights[0] =
+      (Light){AMBIENT, 0.2, vector_3d_init(0, 0, 0), vector_3d_init(0, 0, 0)};
+  lights[1] =
+      (Light){POINT, 0.6, vector_3d_init(2, 1, 0), vector_3d_init(0, 0, 0)};
+  lights[2] = (Light){DIRECTIONAL, 0.2, vector_3d_init(0, 0, 0),
+                      vector_3d_init(1, 4, 4)};
+
   scene = malloc(sizeof(Scene));
   scene->spheres = spheres;
   scene->spheres_count = spheres_count;
+  scene->lights = lights;
+  scene->lights_count = lights_count;
 }
 
 static void initialize_camera() {
@@ -137,8 +149,10 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     SDL_DestroyWindow(window);
   }
   if (scene) {
-    if (scene->spheres)
+    if (scene->spheres) {
       free(scene->spheres);
+      free(scene->lights);
+    }
 
     free(scene);
   }

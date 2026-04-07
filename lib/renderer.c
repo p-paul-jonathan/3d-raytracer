@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "camera.h"
 #include "constants.h"
+#include "light.h"
 #include "scene.h"
 #include "sphere.h"
 #include "vector_3d.h"
@@ -25,6 +26,43 @@ void put_pixel(int x, int y, uint32_t color, uint32_t *framebuffer) {
   int screen_y = half_height - y - 1;
 
   framebuffer[screen_x + WINDOW_WIDTH * screen_y] = color;
+}
+
+// Computes the Light intensity on each point in camera
+// by weighted cosine sum of all lights falling on it
+float compute_lighting(Vector3D sphere_intersection_point,
+                       Vector3D sphere_normal_at_intersection_point,
+                       Scene scene) {
+  float intensity_of_light_at_intersection_point = 0.0f;
+  Vector3D light_direction_at_sphere;
+
+  for (int i = 0; i < scene.lights_count; i++) {
+    Light light = scene.lights[i];
+
+    if (light.type == AMBIENT) {
+      // we add intensity to every visible point on the sphere
+      intensity_of_light_at_intersection_point += light.intensity;
+    } else {
+      if (light.type == POINT) {
+        light_direction_at_sphere =
+            vector_3d_subtract(light.position, sphere_intersection_point);
+      } else {
+        light_direction_at_sphere = light.direction;
+      }
+
+      float n_dot_l = vector_3d_dot_product(sphere_normal_at_intersection_point,
+                                            light_direction_at_sphere);
+
+      if (n_dot_l > 0) {
+        intensity_of_light_at_intersection_point +=
+            n_dot_l /
+            (vector_3d_magnitude(sphere_normal_at_intersection_point) *
+             vector_3d_magnitude(light_direction_at_sphere));
+      }
+    }
+  }
+
+  return intensity_of_light_at_intersection_point;
 }
 
 // Check whether the ray intersects anything on the scene
@@ -64,7 +102,14 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
   if (!hit_sphere)
     return vector_color_black();
 
-  return closest_sphere.color;
+  Vector3D sphere_intersection_point = vector_3d_add(
+      camera_position,
+      vector_3d_multiply_scalar(ray_from_camera, closest_multiplier));
+  Vector3D sphere_normal_at_intersection_point = vector_3d_unit_vector(
+      vector_3d_subtract(sphere_intersection_point, closest_sphere.center));
+  float intensity = compute_lighting(
+      sphere_intersection_point, sphere_normal_at_intersection_point, scene);
+  return vector_color_scale(closest_sphere.color, intensity);
 }
 
 void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {
