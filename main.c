@@ -33,7 +33,7 @@ static uint32_t *framebuffer = NULL;
 static Scene *scene = NULL;
 static Camera *camera = NULL;
 
-static bool done = false;
+static bool rendered_scene = false;
 
 static void initialize_scene() {
   int spheres_count = 4;
@@ -126,7 +126,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
-  render_scene(*camera, *scene, framebuffer);
+
+  if (!rendered_scene) {
+    render_scene(*camera, *scene, framebuffer);
+    rendered_scene = true;
+  }
 
   SDL_UpdateTexture(texture, NULL, framebuffer,
                     WINDOW_WIDTH * sizeof(uint32_t));
