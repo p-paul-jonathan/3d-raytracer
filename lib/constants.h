@@ -3,5 +3,6 @@
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
+#define VIEWPORT_DISTANCE 1
 
 #endif // CONSTANTS_H

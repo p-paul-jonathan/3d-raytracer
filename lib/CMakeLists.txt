@@ -5,6 +5,8 @@ add_library(3d-raytracer-lib
   vector_3d.c
   vector_color.c
   camera.c
+  scene.c
+  sphere.c
 )
 
 target_include_directories(3d-raytracer-lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

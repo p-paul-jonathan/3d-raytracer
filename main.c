@@ -1,4 +1,13 @@
+#include "SDL3/SDL_log.h"
+#include "camera.h"
+#include "scene.h"
+#include "sphere.h"
+#include "vector_3d.h"
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -20,7 +29,37 @@ static SDL_Texture *texture = NULL;
 
 static uint32_t *framebuffer = NULL;
 
-int position = 1;
+static Scene *scene = NULL;
+static Camera *camera = NULL;
+
+static bool done = false;
+
+static void initialize_scene() {
+  int spheres_count = 4;
+  Sphere *spheres = malloc(spheres_count * sizeof(Sphere));
+  spheres[0] = (Sphere){vector_3d_init(0, -1, 3), 1, vector_color_red()};
+  spheres[1] = (Sphere){vector_3d_init(2, 0, 4), 1, vector_color_blue()};
+  spheres[2] = (Sphere){vector_3d_init(-2, 0, 4), 1, vector_color_green()};
+  spheres[3] =
+      (Sphere){vector_3d_init(0, -5001, 0), 5000, vector_color_yellow()};
+
+  scene = malloc(sizeof(Scene));
+  scene->spheres = spheres;
+  scene->spheres_count = spheres_count;
+}
+
+static void initialize_camera() {
+  camera = malloc(sizeof(Camera));
+  camera->position = vector_3d_init(0, 0, 0);
+  camera->camera_right = vector_3d_init(1, 0, 0);
+  camera->camera_up = vector_3d_init(0, 1, 0);
+  camera->camera_forward = vector_3d_init(0, 0, 1);
+  camera->viewport_distance = VIEWPORT_DISTANCE;
+  camera->viewport_width = 1.6;
+  camera->viewport_height = 0.9;
+  camera->min_range = 0;
+  camera->max_range = INFINITY;
+}
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -49,6 +88,16 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
+  initialize_scene();
+  if (scene == NULL) {
+    SDL_Log("Couldn't create scene");
+  }
+
+  initialize_camera();
+  if (camera == NULL) {
+    SDL_Log("Couldn't create camera");
+  }
+
   return SDL_APP_CONTINUE;
 }
 
@@ -62,15 +111,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
-  position += 1;
-  put_pixel(position, 0, vector_color_to_argb8888(vector_color_cyan()),
-            framebuffer); // blue, right
-  put_pixel(0, position, vector_color_to_argb8888(vector_color_magenta()),
-            framebuffer); // red, top
-  put_pixel(-position, 0, vector_color_to_argb8888(vector_color_yellow()),
-            framebuffer); // green, left
-  put_pixel(0, -position, vector_color_to_argb8888(vector_color_white()),
-            framebuffer); // white, bottom
+  render_scene(*camera, *scene, framebuffer);
 
   SDL_UpdateTexture(texture, NULL, framebuffer,
                     WINDOW_WIDTH * sizeof(uint32_t));
@@ -94,5 +135,14 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   }
   if (window) {
     SDL_DestroyWindow(window);
+  }
+  if (scene) {
+    if (scene->spheres)
+      free(scene->spheres);
+
+    free(scene);
+  }
+  if (camera) {
+    free(camera);
   }
 }
