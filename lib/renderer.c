@@ -6,6 +6,7 @@
 #include "sphere.h"
 #include "vector_3d.h"
 #include "vector_color.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -32,12 +33,14 @@ void put_pixel(int x, int y, uint32_t color, uint32_t *framebuffer) {
 // by weighted cosine sum of all lights falling on it
 float compute_lighting(Vector3D sphere_intersection_point,
                        Vector3D sphere_normal_at_intersection_point,
-                       Scene scene) {
+                       Scene scene, float sphere_speculararity,
+                       Vector3D view_direction) {
   float intensity_of_light_at_intersection_point = 0.0f;
   Vector3D light_direction_at_sphere;
 
   for (int i = 0; i < scene.lights_count; i++) {
     Light light = scene.lights[i];
+    float multiplier_min = 0.001f, multiplier_max;
 
     if (light.type == AMBIENT) {
       // we add intensity to every visible point on the sphere
@@ -46,18 +49,40 @@ float compute_lighting(Vector3D sphere_intersection_point,
       if (light.type == POINT) {
         light_direction_at_sphere =
             vector_3d_subtract(light.position, sphere_intersection_point);
+        multiplier_max = 1.0f;
       } else {
         light_direction_at_sphere = light.direction;
+        multiplier_max = INFINITY;
       }
 
       float n_dot_l = vector_3d_dot_product(sphere_normal_at_intersection_point,
                                             light_direction_at_sphere);
+
+      SphereIntersection shadow_intersection = closest_intersection(
+          sphere_intersection_point, light_direction_at_sphere, multiplier_min,
+          multiplier_max, scene.spheres, scene.spheres_count);
+
+      if (shadow_intersection.hit_sphere)
+        continue;
 
       if (n_dot_l > 0) {
         intensity_of_light_at_intersection_point +=
             n_dot_l /
             (vector_3d_magnitude(sphere_normal_at_intersection_point) *
              vector_3d_magnitude(light_direction_at_sphere));
+      }
+
+      if (sphere_speculararity > -1) {
+        Vector3D reflected_ray = vector_3d_multiply_scalar(
+            sphere_normal_at_intersection_point, 2 * n_dot_l);
+        float r_dot_v = vector_3d_dot_product(reflected_ray, view_direction);
+
+        if (r_dot_v > 0) {
+          intensity_of_light_at_intersection_point +=
+              light.intensity *
+              calculate_sphere_shine(reflected_ray, view_direction,
+                                     sphere_speculararity, r_dot_v);
+        }
       }
     }
   }
@@ -74,42 +99,26 @@ float compute_lighting(Vector3D sphere_intersection_point,
 // the camera
 VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
                       float multiplier_min, float multiplier_max, Scene scene) {
-  bool hit_sphere = false;
-  Sphere closest_sphere;
-  float closest_multiplier = multiplier_max;
 
-  for (int i = 0; i < scene.spheres_count; i++) {
-    SphereIntersection intersection = calculate_sphere_intersection_points(
-        camera_position, ray_from_camera, scene.spheres[i]);
+  SphereIntersection intersection =
+      closest_intersection(camera_position, ray_from_camera, 0, INFINITY,
+                           scene.spheres, scene.spheres_count);
 
-    if (intersection.multiplier_1 >= multiplier_min &&
-        intersection.multiplier_1 <= multiplier_max &&
-        intersection.multiplier_1 < closest_multiplier) {
-      closest_sphere = scene.spheres[i];
-      closest_multiplier = intersection.multiplier_1;
-      hit_sphere = true;
-    }
-
-    if (intersection.multiplier_2 >= multiplier_min &&
-        intersection.multiplier_2 <= multiplier_max &&
-        intersection.multiplier_2 < closest_multiplier) {
-      closest_sphere = scene.spheres[i];
-      closest_multiplier = intersection.multiplier_2;
-      hit_sphere = true;
-    }
-  }
-
-  if (!hit_sphere)
+  if (!intersection.hit_sphere)
     return vector_color_black();
 
   Vector3D sphere_intersection_point = vector_3d_add(
-      camera_position,
-      vector_3d_multiply_scalar(ray_from_camera, closest_multiplier));
-  Vector3D sphere_normal_at_intersection_point = vector_3d_unit_vector(
-      vector_3d_subtract(sphere_intersection_point, closest_sphere.center));
+      camera_position, vector_3d_multiply_scalar(
+                           ray_from_camera, intersection.closest_multiplier));
+  Vector3D sphere_normal_at_intersection_point =
+      vector_3d_unit_vector(vector_3d_subtract(
+          sphere_intersection_point, intersection.closest_sphere.center));
+
   float intensity = compute_lighting(
-      sphere_intersection_point, sphere_normal_at_intersection_point, scene);
-  return vector_color_scale(closest_sphere.color, intensity);
+      sphere_intersection_point, sphere_normal_at_intersection_point, scene,
+      intersection.closest_sphere.specular, vector_3d_negate(ray_from_camera));
+
+  return vector_color_scale(intersection.closest_sphere.color, intensity);
 }
 
 void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {

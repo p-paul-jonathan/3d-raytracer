@@ -38,11 +38,11 @@ static bool done = false;
 static void initialize_scene() {
   int spheres_count = 4;
   Sphere *spheres = malloc(spheres_count * sizeof(Sphere));
-  spheres[0] = (Sphere){vector_3d_init(0, -1, 3), 1, vector_color_red()};
-  spheres[1] = (Sphere){vector_3d_init(2, 0, 4), 1, vector_color_blue()};
-  spheres[2] = (Sphere){vector_3d_init(-2, 0, 4), 1, vector_color_green()};
+  spheres[0] = (Sphere){vector_3d_init(0, -1, 3), 1, vector_color_red(), 500};
+  spheres[1] = (Sphere){vector_3d_init(2, 0, 4), 1, vector_color_blue(), 500};
+  spheres[2] = (Sphere){vector_3d_init(-2, 0, 4), 1, vector_color_green(), 10};
   spheres[3] =
-      (Sphere){vector_3d_init(0, -5001, 0), 5000, vector_color_yellow()};
+      (Sphere){vector_3d_init(0, -5001, 0), 5000, vector_color_yellow(), 1000};
 
   int lights_count = 3;
   Light *lights = malloc(lights_count * sizeof(Light));
@@ -67,8 +67,8 @@ static void initialize_camera() {
   camera->camera_up = vector_3d_init(0, 1, 0);
   camera->camera_forward = vector_3d_init(0, 0, 1);
   camera->viewport_distance = VIEWPORT_DISTANCE;
-  camera->viewport_width = 1.6;
-  camera->viewport_height = 0.9;
+  camera->viewport_width = VIEWPORT_WIDTH;
+  camera->viewport_height = VIEWPORT_HEIGHT;
   camera->min_range = 0;
   camera->max_range = INFINITY;
 }
