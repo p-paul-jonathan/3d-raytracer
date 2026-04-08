@@ -127,7 +127,7 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
                            multiplier_max, scene.spheres, scene.spheres_count);
 
   if (!intersection.hit_sphere)
-    return vector_color_black();
+    return BACKGROUND_COLOR;
 
   if (intersection.closest_sphere.light_source)
     return intersection.closest_sphere.color;

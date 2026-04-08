@@ -8,4 +8,6 @@
 #define VIEWPORT_DISTANCE 1
 #define MAX_RECURSION_DEPTH 2
 
+#define BACKGROUND_COLOR vector_color_black()
+
 #endif // CONSTANTS_H
