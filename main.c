@@ -1,4 +1,8 @@
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_keyboard.h"
 #include "SDL3/SDL_log.h"
+#include "SDL3/SDL_scancode.h"
+#include "SDL3/SDL_timer.h"
 #include "camera.h"
 #include "scene.h"
 #include "vector_3d.h"
@@ -34,6 +38,9 @@ static Scene *scene = NULL;
 static Camera *camera = NULL;
 
 static bool rendered_scene = false;
+static const bool *key_states = NULL;
+
+unsigned int last_time = 0, current_time;
 
 // Use any of these scenes
 // 1. Cornell Box
@@ -45,15 +52,71 @@ static void initialize_scene() {
 
 static void initialize_camera() {
   camera = malloc(sizeof(Camera));
+
   camera->position = vector_3d_init(0, 0, 0);
-  camera->camera_right = vector_3d_init(1, 0, 0);
-  camera->camera_up = vector_3d_init(0, 1, 0);
-  camera->camera_forward = vector_3d_init(0, 0, 1);
+
+  camera->camera_forward = vector_3d_unit_vector(vector_3d_init(0, 0, 1));
+
+  Vector3D world_up = vector_3d_unit_vector(vector_3d_init(0, 1, 0));
+
+  camera->camera_right = vector_3d_unit_vector(
+      vector_3d_cross_product(world_up, camera->camera_forward));
+
+  camera->camera_up =
+      vector_3d_cross_product(camera->camera_forward, camera->camera_right);
+
+  vector_3d_print(camera->camera_forward);
+  vector_3d_print(camera->camera_right);
+  vector_3d_print(camera->camera_up);
+
   camera->viewport_distance = VIEWPORT_DISTANCE;
   camera->viewport_width = VIEWPORT_WIDTH;
   camera->viewport_height = VIEWPORT_HEIGHT;
+
   camera->min_range = 0;
   camera->max_range = INFINITY;
+}
+
+static void move_camera(float delta_time) {
+  float angle_step = 0.1f;
+  float distance_step = 5.0f;
+
+  if (key_states[SDL_SCANCODE_UP]) {
+    pitch_camera_up(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_DOWN]) {
+    pitch_camera_down(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_LEFT]) {
+    yaw_camera_left(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_RIGHT]) {
+    yaw_camera_right(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_W]) {
+    move_camera_forward(camera, distance_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_S]) {
+    move_camera_backward(camera, distance_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_A]) {
+    move_camera_left(camera, distance_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_D]) {
+    move_camera_right(camera, distance_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_Q]) {
+    roll_camera_left(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_E]) {
+    roll_camera_right(camera, angle_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_R]) {
+    move_camera_up(camera, distance_step * delta_time);
+  }
+  if (key_states[SDL_SCANCODE_F]) {
+    move_camera_down(camera, distance_step * delta_time);
+  }
 }
 
 /* This function runs once at startup. */
@@ -107,10 +170,17 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void *appstate) {
 
-  if (!rendered_scene) {
-    render_scene(*camera, *scene, framebuffer);
-    rendered_scene = true;
-  }
+  current_time = SDL_GetTicks();
+
+  key_states = SDL_GetKeyboardState(NULL);
+  move_camera((float)(current_time - last_time) / 1000);
+
+  last_time = current_time;
+
+  // if (!rendered_scene) {
+  render_scene(*camera, *scene, framebuffer);
+  // rendered_scene = true;
+  // }
 
   SDL_UpdateTexture(texture, NULL, framebuffer,
                     WINDOW_WIDTH * sizeof(uint32_t));

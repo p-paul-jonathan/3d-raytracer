@@ -62,6 +62,44 @@ void vector_3d_print(Vector3D v) {
   printf("Vector3D <%f, %f, %f>\n", v.x, v.y, v.z);
 }
 
-Vector3D vector_3d_zero() {
-  return vector_3d_init(0, 0, 0);
+Vector3D vector_3d_zero() { return vector_3d_init(0, 0, 0); }
+
+Quaternion vector_3d_to_quaternion(Vector3D v) {
+  return (Quaternion){0, v.x, v.y, v.z};
+}
+
+Vector3D quaternion_to_vector_3d(Quaternion q) {
+  return vector_3d_init(q.b, q.c, q.d);
+}
+
+Quaternion quaternion_from_axis_angle(Vector3D v, float angle_in_radians) {
+  float half_angle = angle_in_radians / 2.0f;
+  float sin_angle = sinf(half_angle);
+  float cos_angle = cosf(half_angle);
+
+  v = vector_3d_unit_vector(v);
+
+  return (Quaternion){cos_angle, sin_angle * v.x, sin_angle * v.y,
+                      sin_angle * v.z};
+}
+
+Quaternion quaternion_multiply(Quaternion qa, Quaternion qb) {
+  return (Quaternion){
+      qa.a * qb.a - qa.b * qb.b - qa.c * qb.c - qa.d * qb.d, // 1
+      qa.a * qb.b + qa.b * qb.a + qa.c * qb.d - qa.d * qb.c, // i
+      qa.a * qb.c - qa.b * qb.d + qa.c * qb.a + qa.d * qb.b, // j
+      qa.a * qb.d + qa.b * qb.c - qa.c * qb.b + qa.d * qb.a  // k
+  };
+}
+
+Quaternion quaternion_conjugate(Quaternion q) {
+  return (Quaternion){q.a, -q.b, -q.c, -q.d};
+}
+
+Vector3D rotate_vector_via_quaternion(Vector3D u, Quaternion q) {
+  Quaternion q_u = vector_3d_to_quaternion(u);
+  Quaternion q_v =
+      quaternion_multiply(q, quaternion_multiply(q_u, quaternion_conjugate(q)));
+
+  return quaternion_to_vector_3d(q_v);
 }

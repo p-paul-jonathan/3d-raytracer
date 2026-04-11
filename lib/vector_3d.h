@@ -9,6 +9,13 @@ typedef struct {
   float z;
 } Vector3D;
 
+typedef struct {
+  float a;
+  float b;
+  float c;
+  float d;
+} Quaternion;
+
 Vector3D vector_3d_init(float x, float y, float z);
 Vector3D vector_3d_add(Vector3D a, Vector3D b);
 Vector3D vector_3d_subtract(Vector3D a, Vector3D b);
@@ -46,5 +53,12 @@ bool vector_3d_equal(Vector3D a, Vector3D b, float err);
 
 void vector_3d_print(Vector3D v);
 Vector3D vector_3d_zero();
+
+Quaternion vector_3d_to_quaternion(Vector3D v);
+Vector3D quaternion_to_vector_3d(Quaternion q);
+Quaternion quaternion_from_axis_angle(Vector3D v, float angle_in_radians);
+Quaternion quaternion_multiply(Quaternion qa, Quaternion qb);
+Quaternion quaternion_conjugate(Quaternion q);
+Vector3D rotate_vector_via_quaternion(Vector3D u, Quaternion q);
 
 #endif // VECTOR_3D_H

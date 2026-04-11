@@ -1,13 +1,15 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 450
 #define VIEWPORT_WIDTH 1.6
 #define VIEWPORT_HEIGHT 0.9
 #define VIEWPORT_DISTANCE 1
 #define MAX_RECURSION_DEPTH 2
 
 #define BACKGROUND_COLOR vector_color_black()
+
+#define MATH_PI 3.1415926f
 
 #endif // CONSTANTS_H
