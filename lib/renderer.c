@@ -168,12 +168,15 @@ VectorColor trace_ray(Vector3D camera_position, Vector3D ray_from_camera,
   return weighted_color;
 }
 
-void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {
+void render_scene(Camera camera, Scene scene, uint32_t *framebuffer,
+                  bool render_in_hd) {
   int half_width = WINDOW_WIDTH / 2;
   int half_height = WINDOW_HEIGHT / 2;
 
-  for (int i = -half_width; i < half_width; i++) {
-    for (int j = -half_height; j < half_height; j++) {
+  int jump_step = render_in_hd ? 1 : 8;
+
+  for (int i = -half_width; i < half_width; i += jump_step) {
+    for (int j = -half_height; j < half_height; j += jump_step) {
 
       Vector3D ray_from_camera =
           vector_3d_unit_vector(canvas_to_viewport(camera, i, j));
@@ -182,7 +185,11 @@ void render_scene(Camera camera, Scene scene, uint32_t *framebuffer) {
           trace_ray(camera.position, ray_from_camera, camera.min_range,
                     camera.max_range, scene, MAX_RECURSION_DEPTH);
 
-      put_pixel(i, j, vector_color_to_argb8888(pixel_color), framebuffer);
+      for (int w = i; w < i + jump_step; w++) {
+        for (int x = j; x < j + jump_step; x++) {
+          put_pixel(w, x, vector_color_to_argb8888(pixel_color), framebuffer);
+        }
+      }
     }
   }
 }

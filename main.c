@@ -37,10 +37,12 @@ static uint32_t *framebuffer = NULL;
 static Scene *scene = NULL;
 static Camera *camera = NULL;
 
-static bool rendered_scene = false;
+static bool render_in_hd = true;
+static bool scene_rendered = false;
+static bool camera_moved = false;
 static const bool *key_states = NULL;
 
-unsigned int last_time = 0, current_time;
+unsigned int last_time = 0, current_time, last_moved_time = 0;
 
 // Use any of these scenes
 // 1. Cornell Box
@@ -72,46 +74,62 @@ static void initialize_camera() {
   camera->max_range = INFINITY;
 }
 
-static void move_camera(float delta_time) {
+static bool move_camera(float delta_time) {
   float angle_step = 0.1f;
   float distance_step = 5.0f;
 
+  bool moved = false;
+
   if (key_states[SDL_SCANCODE_UP]) {
     pitch_camera_up(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_DOWN]) {
     pitch_camera_down(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_LEFT]) {
     yaw_camera_left(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_RIGHT]) {
     yaw_camera_right(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_W]) {
     move_camera_forward(camera, distance_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_S]) {
     move_camera_backward(camera, distance_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_A]) {
     move_camera_left(camera, distance_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_D]) {
     move_camera_right(camera, distance_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_Q]) {
     roll_camera_left(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_E]) {
     roll_camera_right(camera, angle_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_R]) {
     move_camera_up(camera, distance_step * delta_time);
+    moved = true;
   }
   if (key_states[SDL_SCANCODE_F]) {
     move_camera_down(camera, distance_step * delta_time);
+    moved = true;
   }
+
+  return moved;
 }
 
 /* This function runs once at startup. */
@@ -168,14 +186,25 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   current_time = SDL_GetTicks();
 
   key_states = SDL_GetKeyboardState(NULL);
-  move_camera((float)(current_time - last_time) / 1000);
+  bool moved = move_camera((float)(current_time - last_time) / 1000);
 
   last_time = current_time;
 
-  // if (!rendered_scene) {
-  render_scene(*camera, *scene, framebuffer);
-  // rendered_scene = true;
-  // }
+  if (moved) {
+    camera_moved = true;
+    render_in_hd = false;
+    scene_rendered = false;
+    last_moved_time = current_time;
+  }
+
+  if (!moved && camera_moved && current_time - last_moved_time >= 200 &&
+      !scene_rendered) {
+    render_in_hd = true;
+    scene_rendered = true;
+    camera_moved = false;
+  }
+
+  render_scene(*camera, *scene, framebuffer, render_in_hd);
 
   SDL_UpdateTexture(texture, NULL, framebuffer,
                     WINDOW_WIDTH * sizeof(uint32_t));
