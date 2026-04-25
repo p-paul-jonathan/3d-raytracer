@@ -3,17 +3,18 @@
 #include "vector_3d.h"
 
 Vector3D canvas_to_viewport(Camera camera, float canvas_x, float canvas_y) {
-  float vx =
-      (canvas_x - WINDOW_WIDTH / 2.0f) * camera.viewport_width / WINDOW_WIDTH;
+  // this is calculated in camera-space
+  // i.e basis of the camera
+  float viewport_x = camera.viewport_width * (canvas_x / WINDOW_WIDTH),
+        viewport_y = camera.viewport_height * (canvas_y / WINDOW_HEIGHT),
+        viewport_z = camera.viewport_distance;
 
-  float vy = (WINDOW_HEIGHT / 2.0f - canvas_y) * camera.viewport_height /
-             WINDOW_HEIGHT;
-
+  // this converts the vector from
+  // camera-space to world-space
   return vector_3d_add(
-      vector_3d_multiply_scalar(camera.camera_forward,
-                                camera.viewport_distance),
-      vector_3d_add(vector_3d_multiply_scalar(camera.camera_right, vx),
-                    vector_3d_multiply_scalar(camera.camera_up, vy)));
+      vector_3d_add(vector_3d_multiply_scalar(camera.camera_right, viewport_x),
+                    vector_3d_multiply_scalar(camera.camera_up, viewport_y)),
+      vector_3d_multiply_scalar(camera.camera_forward, viewport_z));
 }
 
 void normalize_camera(Camera *camera) {
@@ -49,7 +50,7 @@ void move_camera_backward(Camera *camera, float distance) {
 }
 
 void pitch_camera_up(Camera *camera, float angle) {
-  Quaternion q = quaternion_from_axis_angle(camera->camera_right, angle);
+  Quaternion q = quaternion_from_axis_angle(camera->camera_right, -angle);
 
   camera->camera_forward =
       rotate_vector_via_quaternion(camera->camera_forward, q);
@@ -62,7 +63,7 @@ void pitch_camera_down(Camera *camera, float angle) {
 }
 
 void yaw_camera_left(Camera *camera, float angle) {
-  Quaternion q = quaternion_from_axis_angle(camera->camera_up, angle);
+  Quaternion q = quaternion_from_axis_angle(camera->camera_up, -angle);
 
   camera->camera_forward =
       rotate_vector_via_quaternion(camera->camera_forward, q);

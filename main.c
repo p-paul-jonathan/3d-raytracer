@@ -55,19 +55,14 @@ static void initialize_camera() {
 
   camera->position = vector_3d_init(0, 0, 0);
 
-  camera->camera_forward = vector_3d_unit_vector(vector_3d_init(0, 0, 1));
+  // Camera faces positive Z
+  camera->camera_forward = vector_3d_init(0, 0, 1);
 
-  Vector3D world_up = vector_3d_unit_vector(vector_3d_init(0, 1, 0));
+  // Camera right is positive X
+  camera->camera_right = vector_3d_init(1, 0, 0);
 
-  camera->camera_right = vector_3d_unit_vector(
-      vector_3d_cross_product(world_up, camera->camera_forward));
-
-  camera->camera_up =
-      vector_3d_cross_product(camera->camera_forward, camera->camera_right);
-
-  vector_3d_print(camera->camera_forward);
-  vector_3d_print(camera->camera_right);
-  vector_3d_print(camera->camera_up);
+  // Camera up is positive Y
+  camera->camera_up = vector_3d_init(0, 1, 0);
 
   camera->viewport_distance = VIEWPORT_DISTANCE;
   camera->viewport_width = VIEWPORT_WIDTH;
