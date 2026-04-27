@@ -21,7 +21,24 @@ typedef struct {
 
 // This gives the ray from camera towards scene
 // we iterate this over each pixel on the window
-// the ray is defined w.r.t scene not camera
+//
+// Step 1: Compute ray in camera-space
+//   Vc = [vx vy vz]^T
+//
+// Step 2: Transform to world-space using camera basis
+//
+// Let:
+//   R, U, F = camera right, up, forward (in world space)
+//
+// Form the camera basis matrix:
+//        [ Rx  Ux  Fx ]
+//   C =  [ Ry  Uy  Fy ]
+//        [ Rz  Uz  Fz ]
+//
+// Then:
+//   Vw = C * Vc
+//
+// i.e. Vw = vx * R + vy * U + vz * F
 Vector3D canvas_to_viewport(Camera camera, float canvas_x, float canvas_y);
 
 void move_camera_up(Camera *camera, float distance);
